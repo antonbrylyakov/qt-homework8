@@ -30,13 +30,13 @@ add_executable(qt-homework8
     ${PROJECT_SOURCES}
 )
 
-#target_link_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/PG_Libs)
+target_link_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/PG_Libs)
 target_link_libraries(qt-homework8 PRIVATE Qt${QT_VERSION_MAJOR}::Widgets
                                            Qt${QT_VERSION_MAJOR}::Sql
                                            Qt${QT_VERSION_MAJOR}::Concurrent
-                                           #libcrypto-3-x64
-                                           #libiconv-2
-                                           #libintl-9
-                                           #libpq
-                                           #libssl-3-x64
+                                           libcrypto-3-x64
+                                           libiconv-2
+                                           libintl-9
+                                           libpq
+                                           libssl-3-x64
                                        )
