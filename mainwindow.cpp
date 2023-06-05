@@ -50,6 +50,11 @@ MainWindow::MainWindow(QWidget *parent)
 
 MainWindow::~MainWindow()
 {
+    clear();
+    if (connected)
+    {
+        dataBase->DisconnectFromDataBase(DB_NAME);
+    }
     delete ui;
 }
 
@@ -75,7 +80,7 @@ void MainWindow::on_act_connect_triggered()
      * отключаемся
     */
 
-    if(ui->lb_statusConnect->text() == "Отключено"){
+    if(!connected){
 
        ui->lb_statusConnect->setText("Подключение");
        ui->lb_statusConnect->setStyleSheet("color : black");
@@ -87,12 +92,12 @@ void MainWindow::on_act_connect_triggered()
     }
     else{
         dataBase->DisconnectFromDataBase(DB_NAME);
+        connected = false;
         ui->lb_statusConnect->setText("Отключено");
         ui->act_connect->setText("Подключиться");
         ui->lb_statusConnect->setStyleSheet("color:red");
         ui->pb_request->setEnabled(false);
     }
-
 }
 
 /*!
@@ -123,6 +128,8 @@ void MainWindow::ScreenDataFromDB(QSqlQueryModel* model, int typeRequest)
     else
     {
         ui->tb_result->setModel(model);
+        deleteCurrentModel();
+        currentModel = model;
         ui->tb_result->resizeColumnsToContents();
     }
 }
@@ -137,6 +144,7 @@ void MainWindow::ReceiveStatusConnectionToDB(bool status)
         ui->lb_statusConnect->setText("Подключено к БД");
         ui->lb_statusConnect->setStyleSheet("color:green");
         ui->pb_request->setEnabled(true);
+        connected = true;
     }
     else{
         dataBase->DisconnectFromDataBase(DB_NAME);
@@ -144,6 +152,7 @@ void MainWindow::ReceiveStatusConnectionToDB(bool status)
         msg->setText(dataBase->GetLastError().text());
         ui->lb_statusConnect->setText("Отключено");
         ui->lb_statusConnect->setStyleSheet("color:red");
+        connected = false;
         msg->exec();
     }
 
@@ -152,6 +161,21 @@ void MainWindow::ReceiveStatusConnectionToDB(bool status)
 
 void MainWindow::on_pb_clear_clicked()
 {
+    clear();
+}
+
+void MainWindow::deleteCurrentModel()
+{
+    if (currentModel)
+    {
+        delete currentModel;
+        currentModel = nullptr;
+    }
+}
+
+void MainWindow::clear()
+{
     ui->tb_result->setModel(nullptr);
+    deleteCurrentModel();
 }
 

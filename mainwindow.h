@@ -43,5 +43,9 @@ private:
     DbData *dataDb;
     DataBase* dataBase;
     QMessageBox* msg;
+    QSqlQueryModel* currentModel = nullptr;
+    bool connected = false;
+    void deleteCurrentModel();
+    void clear();
 };
 #endif // MAINWINDOW_H

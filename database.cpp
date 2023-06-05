@@ -69,23 +69,38 @@ void DataBase::RequestToDB(int typeR)
 {
 
     // Перенес формирование запросы в класс БД, чтобы изолировать основную форму от этих деталей
+    QSqlQueryModel* model = nullptr;
 
-    QString queryStr;
     switch (typeR)
     {
         case requestComedy:
-            queryStr = "SELECT title, description FROM film f JOIN film_category fc on f.film_id = fc.film_id JOIN category c on c.category_id = fc.category_id WHERE c.name = 'Comedy' ORDER BY f.film_id";
+            {
+                auto queryStr = "SELECT title, description FROM film f JOIN film_category fc on f.film_id = fc.film_id JOIN category c on c.category_id = fc.category_id WHERE c.name = 'Comedy' ORDER BY f.film_id";
+                auto qModel = new QSqlQueryModel();
+                qModel->setQuery(queryStr, *dataBase);
+                model = qModel;
+            }
             break;
         case requestHorrors:
-            queryStr = "SELECT title, description FROM film f JOIN film_category fc on f.film_id = fc.film_id JOIN category c on c.category_id = fc.category_id WHERE c.name = 'Horror' ORDER BY f.film_id";
+            {
+                auto queryStr = "SELECT title, description FROM film f JOIN film_category fc on f.film_id = fc.film_id JOIN category c on c.category_id = fc.category_id WHERE c.name = 'Horror' ORDER BY f.film_id";
+                auto qModel = new QSqlQueryModel();
+                qModel->setQuery(queryStr, *dataBase);
+                model = qModel;
+            }
             break;
         default:
-            queryStr = "SELECT title, description FROM film f ORDER BY f.film_id";
-        break;
+            auto tModel = new QSqlTableModel(nullptr, *dataBase);
+            tModel->setTable("public.film");
+            tModel->select();
+            // считаем, что в данном случае порядок полей в самой таблице не меняется
+            // в противном случае можно было бы искать колонки по имени и перемещать их, как нужно
+            tModel->removeColumn(0);
+            tModel->removeColumns(2, tModel->columnCount() - 2);
+            model = tModel;
+            break;
     }
 
-    auto model = new QSqlQueryModel();
-    model->setQuery(queryStr, *dataBase);
     model->setHeaderData(0, Qt::Horizontal, tr("Название фильма"));
     model->setHeaderData(1, Qt::Horizontal, tr("Описание фильма"));
     emit sig_SendDataFromDB(model, typeR);

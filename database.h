@@ -6,6 +6,7 @@
 #include <QSqlError>
 #include <QSqlDatabase>
 #include <QSqlQueryModel>
+#include <QSqlTableModel>
 
 
 #define POSTGRE_DRIVER "QPSQL"
