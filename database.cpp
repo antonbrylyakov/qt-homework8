@@ -5,12 +5,17 @@ DataBase::DataBase(QObject *parent)
 {
 
     dataBase = new QSqlDatabase();
-
-
+    currentQueryModel = new QSqlQueryModel(nullptr);
 }
 
 DataBase::~DataBase()
 {
+    delete currentQueryModel;
+    if (currentTableModel)
+    {
+        delete currentTableModel;
+    }
+
     delete dataBase;
 }
 
@@ -21,9 +26,7 @@ DataBase::~DataBase()
  */
 void DataBase::AddDataBase(QString driver, QString nameDB)
 {
-
     *dataBase = QSqlDatabase::addDatabase(driver, nameDB);
-
 }
 
 /*!
@@ -46,6 +49,18 @@ void DataBase::ConnectToDataBase(QVector<QString> data)
 
     bool status;
     status = dataBase->open( );
+    if (status)
+    {
+        // табличную модель приходится пересоздавать при переподключении,
+        // т.к. нет метода смены базы данных
+        if (currentTableModel)
+        {
+            delete currentTableModel;
+        }
+
+        currentTableModel = new QSqlTableModel(nullptr, *dataBase);
+    }
+
     emit sig_SendStatusConnection(status);
 
 }
@@ -70,34 +85,33 @@ void DataBase::RequestToDB(int typeR)
 
     // Перенес формирование запросы в класс БД, чтобы изолировать основную форму от этих деталей
     QSqlQueryModel* model = nullptr;
+    currentQueryModel->clear();
+    currentTableModel->clear();
 
     switch (typeR)
     {
         case requestComedy:
             {
                 auto queryStr = "SELECT title, description FROM film f JOIN film_category fc on f.film_id = fc.film_id JOIN category c on c.category_id = fc.category_id WHERE c.name = 'Comedy' ORDER BY f.film_id";
-                auto qModel = new QSqlQueryModel();
-                qModel->setQuery(queryStr, *dataBase);
-                model = qModel;
+                currentQueryModel->setQuery(queryStr, *dataBase);
+                model = currentQueryModel;
             }
             break;
         case requestHorrors:
             {
                 auto queryStr = "SELECT title, description FROM film f JOIN film_category fc on f.film_id = fc.film_id JOIN category c on c.category_id = fc.category_id WHERE c.name = 'Horror' ORDER BY f.film_id";
-                auto qModel = new QSqlQueryModel();
-                qModel->setQuery(queryStr, *dataBase);
-                model = qModel;
+                currentQueryModel->setQuery(queryStr, *dataBase);
+                model = currentQueryModel;
             }
             break;
         default:
-            auto tModel = new QSqlTableModel(nullptr, *dataBase);
-            tModel->setTable("public.film");
-            tModel->select();
+            currentTableModel->setTable("public.film");
+            currentTableModel->select();
             // считаем, что в данном случае порядок полей в самой таблице не меняется
             // в противном случае можно было бы искать колонки по имени и перемещать их, как нужно
-            tModel->removeColumn(0);
-            tModel->removeColumns(2, tModel->columnCount() - 2);
-            model = tModel;
+            currentTableModel->removeColumn(0);
+            currentTableModel->removeColumns(2, currentTableModel->columnCount() - 2);
+            model = currentTableModel;
             break;
     }
 

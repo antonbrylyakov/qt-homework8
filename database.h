@@ -60,6 +60,8 @@ signals:
 private:
 
     QSqlDatabase* dataBase;
+    QSqlTableModel* currentTableModel = nullptr;
+    QSqlQueryModel* currentQueryModel;
 };
 
 #endif // DATABASE_H

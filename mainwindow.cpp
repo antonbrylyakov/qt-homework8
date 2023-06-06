@@ -120,7 +120,6 @@ void MainWindow::ScreenDataFromDB(QSqlQueryModel* model, int typeRequest)
     auto lastError = model->lastError();
     if (lastError.type() != QSqlError::NoError)
     {
-        delete model;
         msg->setIcon(QMessageBox::Critical);
         msg->setText(lastError.text());
         msg->exec();
@@ -128,8 +127,6 @@ void MainWindow::ScreenDataFromDB(QSqlQueryModel* model, int typeRequest)
     else
     {
         ui->tb_result->setModel(model);
-        deleteCurrentModel();
-        currentModel = model;
         ui->tb_result->resizeColumnsToContents();
     }
 }
@@ -164,18 +161,8 @@ void MainWindow::on_pb_clear_clicked()
     clear();
 }
 
-void MainWindow::deleteCurrentModel()
-{
-    if (currentModel)
-    {
-        delete currentModel;
-        currentModel = nullptr;
-    }
-}
-
 void MainWindow::clear()
 {
     ui->tb_result->setModel(nullptr);
-    deleteCurrentModel();
 }
 
